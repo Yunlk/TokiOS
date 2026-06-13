@@ -1,16 +1,16 @@
 #include "idt.h"
+#include "isr.h"
 #define IDT_ENTRIES 256
 
 struct idt_entry idt[IDT_ENTRIES];
 struct idt_ptr idtp;
 
-extern void idf_flush(uint32_t);
+extern void idt_flush(uint32_t);
 
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
 {
     idt[num].base_low = base & 0xFFFF;
     idt[num].base_high = (base >> 16) & 0xFFFF;
-
     idt[num].sel = sel;
     idt[num].always0 = 0;
     idt[num].flags = flags;
@@ -29,12 +29,6 @@ static inline void outb(uint16_t port, uint8_t val)
 {
     __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
 }
-static inline uint8_t inb(uint16_t port)
-{
-    uint8_t ret;
-    __asm__ volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
-}
 
 void idt_install()
 {
@@ -42,28 +36,42 @@ void idt_install()
     idtp.base = (uint32_t)&idt;
 
     for(int i = 0;i < IDT_ENTRIES; i++)
-    {
-        uint8_t *entry = (uint8_t*)&idt[i];
-        for(int j = 0; j < sizeof(struct idt_entry); j++)
-        {
-            entry[j] = 0;
-        }
-    }
+        idt[i] = (struct idt_entry){0};
 
-    // Remap the PIC
+    // Remap PIC
     outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
-    outb(PIC1_DATA, 0x20); // Master PIC vector offset
-    outb(PIC2_DATA, 0x28); // Slave PIC vector offset
-    outb(PIC1_DATA, 0x04); // Tell Master PIC about Slave PIC at IRQ2
-    outb(PIC2_DATA, 0x02); // Tell Slave PIC its cascade identity
-    outb(PIC1_DATA, 0x01); // Set Master PIC to 8086 mode
-    outb(PIC2_DATA, 0x01); // Set Slave PIC to 8086 mode
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x28);
+    outb(PIC1_DATA, 0x04);
+    outb(PIC2_DATA, 0x02);
+    outb(PIC1_DATA, 0x01);
+    outb(PIC2_DATA, 0x01);
 
-    outb(PIC1_DATA, 0xFF); // Clear Master PIC mask
-    outb(PIC2_DATA, 0xFF); // Clear Slave PIC mask
+    // Unmask only IRQ1 (keyboard)
+    outb(PIC1_DATA, 0xFD);
+    outb(PIC2_DATA, 0xFF);
 
-    idf_flush((uint32_t)&idtp);
+    // Register IRQ handlers
+    extern void irq0(), irq1(), irq2(), irq3(), irq4(), irq5(), irq6(), irq7();
+    extern void irq8(), irq9(), irq10(), irq11(), irq12(), irq13(), irq14(), irq15();
+    idt_set_gate(32, (uint32_t)irq0,  0x08, 0x8E);
+    idt_set_gate(33, (uint32_t)irq1,  0x08, 0x8E);
+    idt_set_gate(34, (uint32_t)irq2,  0x08, 0x8E);
+    idt_set_gate(35, (uint32_t)irq3,  0x08, 0x8E);
+    idt_set_gate(36, (uint32_t)irq4,  0x08, 0x8E);
+    idt_set_gate(37, (uint32_t)irq5,  0x08, 0x8E);
+    idt_set_gate(38, (uint32_t)irq6,  0x08, 0x8E);
+    idt_set_gate(39, (uint32_t)irq7,  0x08, 0x8E);
+    idt_set_gate(40, (uint32_t)irq8,  0x08, 0x8E);
+    idt_set_gate(41, (uint32_t)irq9,  0x08, 0x8E);
+    idt_set_gate(42, (uint32_t)irq10, 0x08, 0x8E);
+    idt_set_gate(43, (uint32_t)irq11, 0x08, 0x8E);
+    idt_set_gate(44, (uint32_t)irq12, 0x08, 0x8E);
+    idt_set_gate(45, (uint32_t)irq13, 0x08, 0x8E);
+    idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
+    idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
 
-    asm volatile("sti");
+    idt_flush((uint32_t)&idtp);
+    __asm__ volatile("sti");
 }

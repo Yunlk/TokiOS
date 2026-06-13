@@ -1,5 +1,8 @@
 #include "gdt.h"
 #include "idt.h"
+#include "isr.h"
+
+void keyboard_init();
 
 void kernel_main(void)
 {
@@ -12,5 +15,7 @@ void kernel_main(void)
     }
     gdt_install();
     idt_install();
+    keyboard_init();
     while(1);
+    __asm__ volatile ("hlt");
 }
