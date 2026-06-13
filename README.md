@@ -1,55 +1,89 @@
-# TokiOS
+```
+████████╗ ██████╗ ██╗  ██╗██╗ ██████╗ ███████╗
+╚══██╔══╝██╔═══██╗██║ ██╔╝██║██╔═══██╗██╔════╝
+   ██║   ██║   ██║█████╔╝ ██║██║   ██║███████╗
+   ██║   ██║   ██║██╔═██╗ ██║██║   ██║╚════██║
+   ██║   ╚██████╔╝██║  ██╗██║╚██████╔╝███████║
+   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝ ╚═════╝ ╚══════╝
+```
 
-一个从头写的极小 x86 内核 + 自然语言 Shell。
+> *A kernel so small it fits in your L1 cache. A shell so clean you could teach your mother.*
 
-## 构建
+---
 
-需要 i386 交叉编译链（`as`、`gcc -m32`、`ld -m elf_i386`）。
+## What
+
+TokiOS is a **from-scratch x86 kernel** written in pure C and AT&T assembly. No libc. No multithreading. No bullshit.
+
+It boots. It takes commands. It gets out of your way.
+Natural language verbs. Single-syllable English. Just type what you mean.
+
+```
+TokiOS> cout hello world
+hello world
+
+TokiOS> where
+row=3, col=0
+```
+
+## Build
+
+You need a 32-bit x86 toolchain. That's it.
 
 ```bash
 as --32 boot.S -o boot.o
-gcc -m32 -c kernel.c gdt.c idt.c isr.c keyboard.c shell.c \
-    -ffreestanding -nostdlib -fno-pie -fno-stack-protector
-ld -m elf_i386 -T linker.ld boot.o kernel.o gdt.o idt.o isr.o keyboard.o shell.o \
-    -o tokios.bin
+gcc -m32 -c *.c -ffreestanding -nostdlib -fno-pie -fno-stack-protector
+ld -m elf_i386 -T linker.ld *.o -o tokios.bin
 ```
 
-## 运行
+No cmake. No autotools. No package.json. **Four lines.**
+
+## Run
 
 ```bash
 qemu-system-i386 -machine pc -kernel tokios.bin
 ```
 
-支持 QEMU 7 ~ 11（含 PVH ELF Note）。
+QEMU 7 through 11. PVH. Multiboot. Whatever. It just works.
 
-## 结构
+## Anatomy
 
 ```
-boot.S      入口 + Multiboot 头 + GDT/IDT flush + IRQ 存根
-kernel.c    内核入口（清屏，显示 banner，设光标）
-gdt.c/h     GDT（Null + Code + Data）
-idt.c/h     IDT 初始化 + PIC 重映射
-isr.c/h     中断分派：异常 → 未处理，IRQ1 → 键盘
-keyboard.c  键盘中断 → scancode→ASCII → 回显 / 缓冲
-shell.c/h   Shell 命令解析与执行
-linker.ld   链接脚本
+boot.S      Where it all begins. GDT. IDT. IRQ stubs. The real shit.
+kernel.c    One function: clear the screen, print a banner, hand off to shell.
+gdt.c/h     Flat memory model. Ring 0. No protection, no problem.
+idt.c/h     Interrupt vectors. PIC remap. Exceptions politely ignored.
+isr.c/h     Dispatch. Only IRQ1 gets a handler — the keyboard.
+keyboard.c  Scan codes → ASCII. 128-entry lookup. Echo. Buffer. Cursor.
+shell.c/h   strncmp. atoi. write_int. Command dispatch. All in one file.
+linker.ld   ELF layout. Multiboot header goes first, or QEMU won't touch it.
 ```
 
-## 命令
+## Command Reference
 
-| 命令 | 简写 | 说明 |
-|------|------|------|
-| `cout <text>` | | 输出文本 |
-| `clear` | `cls` | 清屏 |
-| `where` | `w` | 打印光标坐标 |
-| `go <row>` | | 跳转到指定行 |
-| `up [n]` | | 光标上移 n 行 |
-| `down [n]` | | 光标下移 n 行 |
-| `home` | | 光标归零 |
-| `help` | `?` | 列出所有命令 |
-| `shutdown` | | 停机 |
-| `show` `to` `new` `del` `copy` `move` | | 文件操作（fs 未实现） |
+### Now
+| Verb | Short | Does |
+|------|-------|------|
+| `cout` | | Print arguments to screen |
+| `clear` | `cls` | Blank the terminal |
+| `where` | `w` | Cursor coordinates |
+| `go <row>` | | Jump to row |
+| `up [n]` | | Cursor up |
+| `down [n]` | | Cursor down |
+| `home` | | Cursor to origin |
+| `help` | `?` | List commands |
+| `shutdown` | | Halt. Goodbye. |
 
-## 许可
+### Soon™
+`show` `to` `new` `del` `copy` `move` — filesystem stubs. The disk driver isn't written yet. You're looking at it at the exact wrong moment.
 
-MIT
+## Philosophy
+
+- **One file per concept.** Not one file per function.
+- **No dynamic allocation.** You want heap? Write it.
+- **ASCII art is documentation.**
+- **If a command needs more than two syllables, rename it.**
+
+## License
+
+MIT. Take it. Break it. Learn from it. Rewrite it in Rust if you must.
