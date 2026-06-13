@@ -84,7 +84,7 @@ void keyboard_handler()
             cursor_write("\n");
             shell_run(input);
             input_len = 0;
-            cursor_write("TokiOS> ");
+            cursor_write("\nTokiOS> ");
         } else if (input_len < 255) {
             input[input_len++] = (char)c;
             VIDEO[cursor * 2]     = c;
