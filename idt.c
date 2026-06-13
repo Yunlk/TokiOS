@@ -52,6 +52,7 @@ void idt_install()
     outb(PIC1_DATA, 0xFD);
     outb(PIC2_DATA, 0xFF);
 
+<<<<<<< HEAD
     // Register IRQ handlers
     extern void irq0(), irq1(), irq2(), irq3(), irq4(), irq5(), irq6(), irq7();
     extern void irq8(), irq9(), irq10(), irq11(), irq12(), irq13(), irq14(), irq15();
@@ -71,6 +72,9 @@ void idt_install()
     idt_set_gate(45, (uint32_t)irq13, 0x08, 0x8E);
     idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
     idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
+=======
+    idt_flush((uint32_t)&idtp);
+>>>>>>> cff55b7a42a24812e808d79466d10fde5e229b50
 
     idt_flush((uint32_t)&idtp);
     __asm__ volatile("sti");
