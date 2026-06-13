@@ -79,10 +79,10 @@ IRQ 15, irq15
 
 irq_common_stub:
     pusha
-    pushw %ds
-    pushw %es
-    pushw %fs
-    pushw %gs
+    pushl %ds
+    pushl %es
+    pushl %fs
+    pushl %gs
 
     movw $0x10, %ax
     movw %ax, %ds
@@ -95,10 +95,10 @@ irq_common_stub:
     call irq_handler
     popl %eax
 
-    popw %gs
-    popw %fs
-    popw %es
-    popw %ds
+    popl %gs
+    popl %fs
+    popl %es
+    popl %ds
     popa
 
     addl $8, %esp     
