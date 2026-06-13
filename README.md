@@ -39,7 +39,7 @@ Multiboot → GDT → IDT → PIC 重映射 → 键盘中断 → scancode→ASCI
 
 Shell 目前是 `strncmp` + `if-else`。没有 lexer 没有 parser，就这样先跑着。命令设计成自然语言动词——新手敲 `cout` 就能用，不需要先学 `echo`。
 
-**还没做**
+**TODO**
 - 分页。没写。现在跑在物理地址上，像裸奔。
 - 文件系统。`show` `new` `del` `copy` `move` 全是空的，等磁盘驱动。
 - 用户态。Ring 3 的门都还没画。
