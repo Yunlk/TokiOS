@@ -1,23 +1,36 @@
-# TokiOS
+<div align="center">
 
-> 一个 x86 实验内核。  
-> 设计目标：最小内核 + 丰富的中文 Shell。  
-> MIT。拿去拆，别署名。
+```
+  ::::::::::: ::::::::  :::    ::: ::::::::::: ::::::::   ::::::::
+     :+:    :+:    :+: :+:   :+:      :+:    :+:    :+: :+:    :+:
+    +:+    +:+    +:+ +:+  +:+       +:+    +:+    +:+ +:+
+   +#+    +#+    +:+ +#++:++        +#+    +#+    +:+ +#++:++#++
+  +#+    +#+    +#+ +#+  +#+       +#+    +#+    +#+        +#+
+ #+#    #+#    #+# #+#   #+#      #+#    #+#    #+# #+#    #+#
+###     ########  ###    ### ########### ########   ########
+```
+
+</div>
 
 ---
 
-## 当前进度
+一个 x86 内核。大一学生写的。跑在 QEMU 上，还没上真机。
 
-| 模块 | 状态 |
-|------|------|
-| Multiboot/PVH 启动 | ✅ |
-| GDT（ring 0 code/data） | ✅ |
-| IDT + PIC 重映射 | ✅ |
-| 键盘中断 + VGA 回显 | ✅ |
-| Shell（9 命令） | ✅ |
-| 分页 | ⬜ |
-| 文件系统 | ⬜ |
-| 用户态（ring 1/3） | ⬜ |
+MVP 目标：最小内核（~10k 行 C）+ 丰富的中文 Shell。
+
+## 当前状态
+
+能启动，能打字，有个 shell。没了。
+
+```
+TokiOS> cout yo
+yo
+
+TokiOS> where
+row=3, col=0
+```
+
+九个命令，文件系统的全都还没写。现在就是个带键盘中断的打字机。
 
 ## 设计共识（2026-06-14）
 
@@ -50,7 +63,6 @@ tok\0(4B) | 入口地址(4B) | 代码大小(4B) | 权限(1B) | 保留(3B) | [钩
 
 - `.tk` 文件头声明子进程依赖 → 进程树 = 文件树
 - 父作用于子（杀/重启/读状态）天然成立
-- 无孤儿进程
 
 ### 共享内存
 
@@ -63,42 +75,65 @@ tok\0(4B) | 入口地址(4B) | 代码大小(4B) | 权限(1B) | 保留(3B) | [钩
 
 进程崩溃 → dump → kill 进程 → reboot 进程（非全系统）
 
-### 工程原则
+## 进度记录
 
-- **中断是唯一的异步来源** — 没有多线程、没有抢占
-- **没有 malloc** — 无动态内存分配，4KB 固定栈
-- **内核 halt** — 没活干就停，不等事
-- **代码即文档** — 注释解释"为什么"，不重复"做什么"
+**2026-06-13**
+Multiboot → GDT → IDT → PIC 重映射 → 键盘中断 → scancode→ASCII → VGA 回显 → 光标 → 输入缓冲 → Shell 命令分发。
 
----
+用了一整天跟 QEMU 11 斗。Multiboot1 的 `-kernel` 被废弃了，补了 Multiboot2 头，不行。最后加了 PVH ELF Note 才过。下次先写 `qemu-system-i386 --version`，少走弯路。
 
-## 编译 & 运行
+Shell 目前是 `strncmp` + `if-else`。没有 lexer 没有 parser，就这样先跑着。命令设计成自然语言动词——新手敲 `cout` 就能用，不需要先学 `echo`。
 
-在 Arch Linux（或任何有 gcc-multilib 的环境）编译，在 Windows/QEMU 运行。
+**TODO**
+- 分页。没写。现在跑在物理地址上，像裸奔。
+- 文件系统。`show` `new` `del` `copy` `move` 全是空的，等磁盘驱动。
+- 用户态。Ring 3 + Ring 1 的门都还没画。
+- 真机启动。UEFI 还没碰。
 
-```sh
-# 编译 (Arch VM)
+## 构建
+
+```bash
 as --32 boot.S -o boot.o
-gcc -m32 -ffreestanding -nostdlib -fno-stack-protector -c kernel.c -o kernel.o
-gcc -m32 -ffreestanding -nostdlib -fno-stack-protector -c gdt.c -o gdt.o
-gcc -m32 -ffreestanding -nostdlib -fno-stack-protector -c idt.c -o idt.o
-gcc -m32 -ffreestanding -nostdlib -fno-stack-protector -c isr.c -o isr.o
-gcc -m32 -ffreestanding -nostdlib -fno-stack-protector -c keyboard.c -o keyboard.o
-ld -m elf_i386 -T linker.ld -o tokios.bin boot.o kernel.o gdt.o idt.o isr.o keyboard.o
-
-# 运行 (Windows)
-qemu-system-i386 -kernel tokios.bin
+gcc -m32 -c *.c -ffreestanding -nostdlib -fno-pie -fno-stack-protector
+ld -m elf_i386 -T linker.ld *.o -o tokios.bin
 ```
 
-QEMU 11+ 用 PVH ELF Note 启动，兼容 Multiboot 1。
+没有构建系统。就四行 shell。
 
----
+## 文件
 
-## 命名体系
+```
+boot.S      Multiboot/PVH 头，GDT/IDT flush，IRQ 汇编存根
+kernel.c    清屏，打名字，交棒给 shell。就这么点。
+gdt.c/h     平坦内存，Ring 0。两个段。
+idt.c/h     中断向量，PIC 重映射。
+isr.c/h     中断分派。只接了键盘，其他的打行字继续跑。
+keyboard.c  128 项查表 → VGA 回显 + 缓冲 + 光标。一个文件。
+shell.c/h   命令分发。strncmp + atoi。没有抽象语法树。
+linker.ld   放好 Multiboot 头的位置。
+```
 
-| 类型 | 说明 |
+## 当前命令
+
+| 命令 | 效果 |
 |------|------|
-| 根用户 | `kami` |
-| 文件后缀 | `.tk` |
-| Shell 命令 | `cout` `clear` `where` `go` `up` `down` `home` `help` `shutdown` |
-| 别名 | `to=cd` `show=cat` `where=pwd` `say=echo` `del=rm` `new=统一创建` |
+| `cout <text>` | 回显 |
+| `clear` / `cls` | 清屏 |
+| `where` / `w` | 光标坐标 |
+| `go <row>` | 光标跳到第 row 行 |
+| `up [n]` / `down [n]` | 光标上/下移 |
+| `home` | 光标归零 |
+| `help` / `?` | 列出命令 |
+| `shutdown` | `hlt` |
+
+## 顺手记的
+
+- 中断是内核唯一的异步入口。也只应该是唯一的。
+- 内核不 panic，它真的停机。`hlt`。
+- 堆栈 4KB。不够说明你在上面干不该堆栈干的事。
+- 不需要 `malloc`，因为还没写。
+- 一个文件一个概念。键盘驱动就该一个文件。
+
+## 许可
+
+MIT。拿去拆，别署名。

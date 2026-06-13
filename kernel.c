@@ -19,7 +19,7 @@ void kernel_main(void)
     gdt_install();
     idt_install();
     keyboard_init();
-    cursor_set(80);  // cursor to line 2, after boot message
+    cursor_write("\nTokiOS> ");
 
     for(;;) __asm__ volatile("hlt");
 }

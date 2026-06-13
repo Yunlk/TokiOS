@@ -3,7 +3,26 @@ ENTRY(_start)
 SECTIONS {
     . = 1M;
 
-    .multiboot : { *(.multiboot)}
-    .text      : { *(.text)}
-    .bss       : { *(.bss)}
+    .multiboot : {
+        *(.multiboot)
+    }
+
+    .multiboot2 : {
+        *(.multiboot2)
+    }
+
+    .note.Xen : {
+        *(.note.Xen)
+    }
+
+    .text : {
+        *(.text)
+        *(.rodata)
+        *(.data)
+    }
+
+    .bss : {
+        *(.bss)
+        *(COMMON)
+    }
 }

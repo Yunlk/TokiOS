@@ -8,6 +8,28 @@
     .long FLAGS
     .long CHECKSUM
 
+# ── multiboot2 header for QEMU 9+ ──
+.section .multiboot2, "ae"
+    .align 8
+mb2_start:
+    .long 0xE85250D6
+    .long 0              # arch: i386
+    .long mb2_end - mb2_start
+    .long -(0xE85250D6 + 0 + (mb2_end - mb2_start))
+    .word 0              # end tag type
+    .word 0              # flags
+    .long 8              # size
+mb2_end:
+
+# ── PVH ELF note (QEMU 11 -kernel 唯一认的协议) ──
+.section .note.Xen, "a"
+    .align 4
+    .long 4              # n_namesz = "Xen\0"
+    .long 4              # n_descsz = 1 dword
+    .long 18             # n_type = XEN_ELFNOTE_PHYS32_ENTRY
+    .asciz "Xen"
+    .long _start         # entry point
+
 .section .bss
     .align 16
 stack_bottom:
