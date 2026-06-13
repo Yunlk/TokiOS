@@ -4,7 +4,7 @@
 struct idt_entry idt[IDT_ENTRIES];
 struct idt_ptr idtp;
 
-extern void idf_flush(uint32_t);
+extern void idt_flush(uint32_t);
 
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
 {
@@ -63,7 +63,7 @@ void idt_install()
     outb(PIC1_DATA, 0xFF); // Clear Master PIC mask
     outb(PIC2_DATA, 0xFF); // Clear Slave PIC mask
 
-    idf_flush((uint32_t)&idtp);
+    idt_flush((uint32_t)&idtp);
 
     asm volatile("sti");
 }
