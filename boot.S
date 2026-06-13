@@ -8,6 +8,19 @@
     .long FLAGS
     .long CHECKSUM
 
+# ── multiboot2 header for QEMU 9+ ──
+.section .multiboot2, "ae"   # "ae" = alloc+exec, not "a"
+    .align 8
+mb2_start:
+    .long 0xE85250D6
+    .long 0              # arch: i386
+    .long mb2_end - mb2_start
+    .long -(0xE85250D6 + 0 + (mb2_end - mb2_start))
+    .word 0              # end tag type
+    .word 0              # flags
+    .long 8              # size
+mb2_end:
+
 .section .bss
     .align 16
 stack_bottom:

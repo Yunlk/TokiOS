@@ -7,6 +7,10 @@ SECTIONS {
         *(.multiboot)
     }
 
+    .multiboot2 : {
+        *(.multiboot2)
+    }
+
     .text : {
         *(.text)
         *(.rodata)
