@@ -17,5 +17,5 @@ struct idt_ptr
     uint16_t limit;        // Size of the IDT
     uint32_t base;         // Base address of the IDT
 } __attribute__((packed));
-
+void idt_install();
 #endif
