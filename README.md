@@ -91,4 +91,4 @@ linker.ld   放好 Multiboot 头的位置。
 
 ## 许可
 
-MIT。
+MIT。拿去拆，别署名。
