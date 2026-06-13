@@ -1,22 +1,32 @@
 ```
-████████╗ ██████╗ ██╗  ██╗██╗ ██████╗ ███████╗
-╚══██╔══╝██╔═══██╗██║ ██╔╝██║██╔═══██╗██╔════╝
-   ██║   ██║   ██║█████╔╝ ██║██║   ██║███████╗
-   ██║   ██║   ██║██╔═██╗ ██║██║   ██║╚════██║
-   ██║   ╚██████╔╝██║  ██╗██║╚██████╔╝███████║
-   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝ ╚═════╝ ╚══════╝
-```
+     ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄    ▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄
+    ▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░▌  ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
+    ▐░█▀▀▀▀▀▀▀▀▀ ▐░▌       ▐░▌▐░▌ ▐░▌  ▀▀▀▀█░█▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌
+    ▐░▌          ▐░▌       ▐░▌▐░▌▐░▌       ▐░▌     ▐░▌       ▐░▌
+    ▐░█▄▄▄▄▄▄▄▄▄ ▐░▌   ▄   ▐░▌▐░▌░▌       ▐░▌     ▐░█▄▄▄▄▄▄▄█░▌
+    ▐░░░░░░░░░░░▌▐░▌  ▐░▌  ▐░▌▐░░▌        ▐░▌     ▐░░░░░░░░░░░▌
+     ▀▀▀▀▀▀▀▀▀█░▌▐░▌ ▐░▌░▌ ▐░▌▐░▌░▌       ▐░▌     ▐░█▀▀▀▀█░█▀▀
+              ▐░▌▐░▌▐░▌ ▐░▌▐░▌▐░▌▐░▌      ▐░▌     ▐░▌     ▐░▌
+     ▄▄▄▄▄▄▄▄▄█░▌▐░▌░▌   ▐░▐░▌▐░▌ ▐░▌     ▐░▌     ▐░▌      ▐░▌
+    ▐░░░░░░░░░░░▌▐░░▌     ▐░░▌▐░▌  ▐░▌    ▐░▌     ▐░▌       ▐░▌
+     ▀▀▀▀▀▀▀▀▀▀▀  ▀▀       ▀▀  ▀▀    ▀▀     ▀▀       ▀▀         ▀▀
 
-> *A kernel so small it fits in your L1 cache. A shell so clean you could teach your mother.*
+              ████████╗ ██████╗ ██╗  ██╗██╗ ██████╗ ███████╗
+              ╚══██╔══╝██╔═══██╗██║ ██╔╝██║██╔═══██╗██╔════╝
+                 ██║   ██║   ██║█████╔╝ ██║██║   ██║███████╗
+                 ██║   ██║   ██║██╔═██╗ ██║██║   ██║╚════██║
+                 ██║   ╚██████╔╝██║  ██╗██║╚██████╔╝███████║
+                 ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝ ╚═════╝ ╚══════╝
+```
+> 一个从零手搓的 x86 内核。小到塞进 L1 缓存，干净到能教你妈用。
 
 ---
 
-## What
+## 这是什么
 
-TokiOS is a **from-scratch x86 kernel** written in pure C and AT&T assembly. No libc. No multithreading. No bullshit.
+TokiOS — 纯 C + AT&T 汇编，零依赖，从 bootloader 到 shell 全部手写。
 
-It boots. It takes commands. It gets out of your way.
-Natural language verbs. Single-syllable English. Just type what you mean.
+不开玩笑。你看到的每一个字符，都是自己写的。
 
 ```
 TokiOS> cout hello world
@@ -26,9 +36,9 @@ TokiOS> where
 row=3, col=0
 ```
 
-## Build
+## 构建
 
-You need a 32-bit x86 toolchain. That's it.
+只要一个 32 位 x86 工具链。四行命令，一把梭。
 
 ```bash
 as --32 boot.S -o boot.o
@@ -36,54 +46,54 @@ gcc -m32 -c *.c -ffreestanding -nostdlib -fno-pie -fno-stack-protector
 ld -m elf_i386 -T linker.ld *.o -o tokios.bin
 ```
 
-No cmake. No autotools. No package.json. **Four lines.**
+没有 cmake，没有 autotools，没有 package.json。
 
-## Run
+## 运行
 
 ```bash
 qemu-system-i386 -machine pc -kernel tokios.bin
 ```
 
-QEMU 7 through 11. PVH. Multiboot. Whatever. It just works.
+QEMU 7 到 11 全兼容。Multiboot、PVH，你要什么它都有。
 
-## Anatomy
+## 结构解剖
 
 ```
-boot.S      Where it all begins. GDT. IDT. IRQ stubs. The real shit.
-kernel.c    One function: clear the screen, print a banner, hand off to shell.
-gdt.c/h     Flat memory model. Ring 0. No protection, no problem.
-idt.c/h     Interrupt vectors. PIC remap. Exceptions politely ignored.
-isr.c/h     Dispatch. Only IRQ1 gets a handler — the keyboard.
-keyboard.c  Scan codes → ASCII. 128-entry lookup. Echo. Buffer. Cursor.
-shell.c/h   strncmp. atoi. write_int. Command dispatch. All in one file.
-linker.ld   ELF layout. Multiboot header goes first, or QEMU won't touch it.
+boot.S      一切的起点。Multiboot 头。GDT。IDT。IRQ 存根。硬货。
+kernel.c    一个函数：清屏、打 banner、交给 shell。
+gdt.c/h     平坦内存模型。Ring 0。没保护，也没问题。
+idt.c/h     中断向量表。PIC 重映射。异常？优雅地无视。
+isr.c/h     中断分派。只给键盘开了后门。
+keyboard.c  扫描码 → ASCII。128 项查表。回显。缓冲。光标。都在这一个文件里。
+shell.c/h   strncmp、atoi、write_int、命令分发。一个文件打天下。
+linker.ld   ELF 布局。Multiboot 头必须排第一个，不然 QEMU 不认。
 ```
 
-## Command Reference
+## 命令速查
 
-### Now
-| Verb | Short | Does |
-|------|-------|------|
-| `cout` | | Print arguments to screen |
-| `clear` | `cls` | Blank the terminal |
-| `where` | `w` | Cursor coordinates |
-| `go <row>` | | Jump to row |
-| `up [n]` | | Cursor up |
-| `down [n]` | | Cursor down |
-| `home` | | Cursor to origin |
-| `help` | `?` | List commands |
-| `shutdown` | | Halt. Goodbye. |
+### 已实现
+| 命令 | 简写 | 干什么 |
+|------|------|--------|
+| `cout <文本>` | | 把参数打到屏幕上 |
+| `clear` | `cls` | 清屏 |
+| `where` | `w` | 光标在哪 |
+| `go <行号>` | | 跳过去 |
+| `up [n]` | | 往上挪 |
+| `down [n]` | | 往下挪 |
+| `home` | | 回到原点 |
+| `help` | `?` | 列出所有命令 |
+| `shutdown` | | 停机。再见。 |
 
-### Soon™
-`show` `to` `new` `del` `copy` `move` — filesystem stubs. The disk driver isn't written yet. You're looking at it at the exact wrong moment.
+### 占位中
+`show` `to` `new` `del` `copy` `move` — 文件系统还没写。你来得不巧，正好是没磁盘驱动的历史时刻。
 
-## Philosophy
+## 哲学
 
-- **One file per concept.** Not one file per function.
-- **No dynamic allocation.** You want heap? Write it.
-- **ASCII art is documentation.**
-- **If a command needs more than two syllables, rename it.**
+- **一个文件一个概念。** 不是一个函数一个文件。
+- **零动态分配。** 想要堆？自己写。
+- **命令超过两个音节就改名。**
+- **代码即文档。ASCII 艺术是附送的。**
 
-## License
+## 许可
 
-MIT. Take it. Break it. Learn from it. Rewrite it in Rust if you must.
+MIT。拿走，拆开，学，重写成 Rust 也行。随你。
