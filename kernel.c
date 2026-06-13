@@ -16,6 +16,5 @@ void kernel_main(void)
     gdt_install();
     idt_install();
     keyboard_init();
-    while(1);
-    __asm__ volatile ("hlt");
+    for(;;) __asm__ volatile("hlt");
 }
