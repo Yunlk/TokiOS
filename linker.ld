@@ -11,6 +11,10 @@ SECTIONS {
         *(.multiboot2)
     }
 
+    .note.Xen : {
+        *(.note.Xen)
+    }
+
     .text : {
         *(.text)
         *(.rodata)
