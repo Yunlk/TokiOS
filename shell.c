@@ -1,6 +1,8 @@
 #include "shell.h"
 #include "isr.h"
 
+/* ---- helpers ---- */
+
 static int strncmp(const char *a, const char *b, int n)
 {
     for (int i = 0; i < n; i++) {
@@ -10,23 +12,42 @@ static int strncmp(const char *a, const char *b, int n)
     return 0;
 }
 
-static int strlen(const char *s)
+static int atoi(const char *s)
 {
     int n = 0;
-    while (*s++) n++;
+    while (*s >= '0' && *s <= '9') {
+        n = n * 10 + (*s - '0');
+        s++;
+    }
     return n;
 }
+
+static void write_int(int n)
+{
+    char buf[12];
+    int  i = 0;
+    if (n < 0)  { buf[i++] = '-'; n = -n; }
+    if (n == 0)  buf[i++] = '0';
+    while (n) {
+        buf[i++] = '0' + (n % 10);
+        n /= 10;
+    }
+    int s = (buf[0] == '-') ? 1 : 0;
+    int e = i - 1;
+    while (s < e) { char t = buf[s]; buf[s] = buf[e]; buf[e] = t; s++; e--; }
+    buf[i] = 0;
+    cursor_write(buf);
+}
+
+/* ---- dispatch ---- */
 
 void shell_run(const char *cmd)
 {
     // skip leading spaces
     while (*cmd == ' ') cmd++;
-    if (!*cmd) {
-        cursor_write("\n");
-        return;
-    }
+    if (!*cmd) return;
 
-    // find end of command name
+    // extract command name
     const char *name = cmd;
     while (*cmd && *cmd != ' ') cmd++;
     int name_len = cmd - name;
@@ -35,10 +56,106 @@ void shell_run(const char *cmd)
     while (*cmd == ' ') cmd++;
     const char *args = cmd;
 
-    // ---- dispatch ----
-    if (name_len == 3 && strncmp(name, "say", 3) == 0) {
+    // ────────── cout ──────────
+    if (name_len == 4 && strncmp(name, "cout", 4) == 0) {
         cursor_write(args);
+        return;
     }
-    // silent ignore on unknown command
-    cursor_write("\n");
+
+    // ────────── clear / cls ──────────
+    if ((name_len == 5 && strncmp(name, "clear", 5) == 0) ||
+        (name_len == 3 && strncmp(name, "cls",   3) == 0)) {
+        cursor_clear();
+        return;
+    }
+
+    // ────────── where / w ──────────
+    if ((name_len == 5 && strncmp(name, "where", 5) == 0) ||
+        (name_len == 1 && strncmp(name, "w",     1) == 0)) {
+        int pos = cursor_get();
+        cursor_write("row=");
+        write_int(pos / 80);
+        cursor_write(", col=");
+        write_int(pos % 80);
+        return;
+    }
+
+    // ────────── go ──────────
+    if (name_len == 2 && strncmp(name, "go", 2) == 0) {
+        int row = atoi(args);
+        if (row < 0)  row = 0;
+        if (row > 24) row = 24;
+        cursor_set(row * 80);
+        return;
+    }
+
+    // ────────── up ──────────
+    if (name_len == 2 && strncmp(name, "up", 2) == 0) {
+        int n = *args ? atoi(args) : 1;
+        int pos = cursor_get();
+        pos -= n * 80;
+        if (pos < 0) pos = 0;
+        cursor_set(pos);
+        return;
+    }
+
+    // ────────── down ──────────
+    if (name_len == 4 && strncmp(name, "down", 4) == 0) {
+        int n = *args ? atoi(args) : 1;
+        int pos = cursor_get();
+        pos += n * 80;
+        if (pos >= 80 * 25) pos = 80 * 25 - 80;
+        cursor_set(pos);
+        return;
+    }
+
+    // ────────── home ──────────
+    if (name_len == 4 && strncmp(name, "home", 4) == 0) {
+        cursor_set(0);
+        return;
+    }
+
+    // ────────── help / ? ──────────
+    if ((name_len == 4 && strncmp(name, "help", 4) == 0) ||
+        (name_len == 1 && strncmp(name, "?",    1) == 0)) {
+        cursor_write("cout clear cls where w go up down home help ? shutdown");
+        return;
+    }
+
+    // ────────── shutdown ──────────
+    if (name_len == 8 && strncmp(name, "shutdown", 8) == 0) {
+        cursor_write("Goodbye.");
+        for(;;) __asm__ volatile("cli; hlt");
+    }
+
+    // ──────────  placeholder: filesystem commands  ──────────
+
+    if ((name_len == 4 && strncmp(name, "show", 4) == 0) ||
+        (name_len == 1 && strncmp(name, "s",    1) == 0)) {
+        cursor_write("[show] fs not ready");
+        return;
+    }
+    if (name_len == 2 && strncmp(name, "to", 2) == 0) {
+        cursor_write("[to] fs not ready");
+        return;
+    }
+    if ((name_len == 3 && strncmp(name, "new", 3) == 0) ||
+        (name_len == 1 && strncmp(name, "n",   1) == 0)) {
+        cursor_write("[new] fs not ready");
+        return;
+    }
+    if (name_len == 3 && strncmp(name, "del", 3) == 0) {
+        cursor_write("[del] fs not ready");
+        return;
+    }
+    if ((name_len == 4 && strncmp(name, "copy", 4) == 0) ||
+        (name_len == 2 && strncmp(name, "cp",   2) == 0)) {
+        cursor_write("[copy] fs not ready");
+        return;
+    }
+    if ((name_len == 4 && strncmp(name, "move", 4) == 0) ||
+        (name_len == 2 && strncmp(name, "mv",   2) == 0)) {
+        cursor_write("[move] fs not ready");
+        return;
+    }
 }
