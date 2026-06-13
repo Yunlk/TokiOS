@@ -12,6 +12,14 @@
 
 </div>
 
+<div align="center">
+
+![license](https://img.shields.io/badge/license-MIT-blue)
+![status](https://img.shields.io/badge/status-half--baked-orange)
+![arch](https://img.shields.io/badge/arch-x86-lightgrey)
+
+</div>
+
 ---
 
 一个 x86 内核。大一学生写的。跑在 QEMU 上，还没上真机。
