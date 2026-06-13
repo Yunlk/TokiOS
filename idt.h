@@ -18,4 +18,5 @@ struct idt_ptr
     uint32_t base;         // Base address of the IDT
 } __attribute__((packed));
 
+void idt_install();
 #endif
