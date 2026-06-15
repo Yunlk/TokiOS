@@ -24,9 +24,7 @@ void kernel_main(void)
     idt_install();
     keyboard_init();
     tfs_init();
-    char *user_code = (char*)0x200000;
-    user_code[0] = 0xEB; // jump short
-    user_code[1] = 0xFE; // -2 (infinite loop)
+   
     cursor_write("\nTokiOS> ");
 
     for(;;) __asm__ volatile("hlt");

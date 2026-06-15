@@ -4,6 +4,8 @@
 
 void syscall_handler(struct regs *r)
 {
+    cursor_write("[ok]");
+    cursor_write((const char*)r->ebx);
     switch (r->eax)
     {
         case 1:
