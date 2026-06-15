@@ -1,5 +1,6 @@
 #include "shell.h"
 #include "isr.h"
+#include "tfs.h"
 
 /* ---- helpers ---- */
 
@@ -22,7 +23,7 @@ static int atoi(const char *s)
     return n;
 }
 
-static void write_int(int n)
+void write_int(int n)
 {
     char buf[12];
     int  i = 0;
@@ -152,34 +153,56 @@ void shell_run(const char *cmd)
         for(;;) __asm__ volatile("cli; hlt");
     }
 
-    // ──────────  placeholder: filesystem commands  ──────────
+    // ────────── ls ──────────
+    if (name_len == 2 && strncmp(name, "ls", 2) == 0) {
+        tfs_list();
+        return;
+    }
 
+    // ────────── show / s ──────────
     if ((name_len == 4 && strncmp(name, "show", 4) == 0) ||
         (name_len == 1 && strncmp(name, "s",    1) == 0)) {
-        cursor_write("[show] fs not ready");
+        char buf[256];
+        int n = tfs_read(args, buf, sizeof(buf));
+        if (n < 0)
+            cursor_write("no such file");
+        else
+            cursor_write(buf);
         return;
     }
-    if (name_len == 2 && strncmp(name, "to", 2) == 0) {
-        cursor_write("[to] fs not ready");
-        return;
-    }
+
+    // ────────── new / n ──────────
     if ((name_len == 3 && strncmp(name, "new", 3) == 0) ||
         (name_len == 1 && strncmp(name, "n",   1) == 0)) {
-        cursor_write("[new] fs not ready");
+
+        const char *fname = args;
+        while (*fname == ' ') fname++;
+        if (!*fname) { cursor_write("new <name> <data>"); return; }
+        const char *p = fname;
+        while (*p && *p != ' ') p++;
+        int fnlen = p - fname;
+        while (*p == ' ') p++;
+        const char *data = p;
+        int dlen = 0;
+        while (data[dlen]) dlen++;
+        if (fnlen >= MAX_FNAME) { cursor_write("name too long"); return; }
+            
+        char fn[MAX_FNAME];
+        for (int i = 0; i < fnlen && i < MAX_FNAME-1; i++)
+            fn[i] = fname[i];
+        fn[fnlen] = '\0';
+        int r = tfs_create(fn, data, dlen);
+        if (r < 0) cursor_write("create failed");
         return;
     }
+
+    // ────────── del ──────────
     if (name_len == 3 && strncmp(name, "del", 3) == 0) {
-        cursor_write("[del] fs not ready");
+        int r = tfs_delete(args);
+        if (r < 0) cursor_write("no such file");
         return;
     }
-    if ((name_len == 4 && strncmp(name, "copy", 4) == 0) ||
-        (name_len == 2 && strncmp(name, "cp",   2) == 0)) {
-        cursor_write("[copy] fs not ready");
-        return;
-    }
-    if ((name_len == 4 && strncmp(name, "move", 4) == 0) ||
-        (name_len == 2 && strncmp(name, "mv",   2) == 0)) {
-        cursor_write("[move] fs not ready");
-        return;
-    }
+
+
+    
 }

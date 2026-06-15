@@ -2,9 +2,10 @@
 #include "paging.h"
 #include "idt.h"
 #include "isr.h"
+#include "tfs.h"
 
 void keyboard_init();
-
+tfs_init();
 void kernel_main(void)
 {
     // Clear screen
