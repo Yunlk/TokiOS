@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "isr.h"
 #include "tfs.h"
+#include "proc.h"
 
 /* ---- helpers ---- */
 
@@ -206,8 +207,7 @@ void shell_run(const char *cmd)
     // ────────── ring3 ──────────
     if (name_len == 5 && strncmp(name, "ring3", 5) == 0) {
         cursor_write("jumping to ring3...");
-        extern void proc_start(uint32_t entry);
-        proc_start(0x200000);
+        proc_start((void*)0x200000, (void*)0x2FFFFC);
         return;
     }
 
