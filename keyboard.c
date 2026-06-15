@@ -73,18 +73,20 @@ void keyboard_handler()
         if (!c) return;
 
         if (c == '\b') {
-            if (cursor > 0) {
+            if (input_len > 0) {
                 cursor--;
                 VIDEO[cursor * 2]     = ' ';
                 VIDEO[cursor * 2 + 1] = 0x0F;
+                input_len--;
             }
-            if (input_len > 0) input_len--;
         } else if (c == '\n') {
             input[input_len] = '\0';
             cursor_write("\n");
             shell_run(input);
             input_len = 0;
-            cursor_write("\nTokiOS> ");
+            if (cursor_get() % 80 != 0)
+                cursor_write("\n");
+            cursor_write("TokiOS> ");
         } else if (input_len < 255) {
             input[input_len++] = (char)c;
             VIDEO[cursor * 2]     = c;
