@@ -29,7 +29,7 @@ void gdt_install()
     gdt_set_gate(4, 0, 0xFFFFF, 0xF2, 0xCF);                      // Ring 3
     gdt_set_gate(5, (uint32_t)&tss, sizeof(tss) - 1, 0x89, 0x40); // TSS
     // Flush the GDT
-    gdt_flush(6 * 8 - 1);
+    gdt_flush((uint32_t)&gp);//FK GDT
 }
 
 void tss_init()
