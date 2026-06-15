@@ -10,5 +10,6 @@ typedef uint32_t page_dir_entry_t;
 typedef uint32_t page_table_entry_t;
 
 void paging_init(void);
+void page_map_user(uint32_t vaddr,uint32_t paddr);
 
 #endif

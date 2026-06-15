@@ -18,7 +18,9 @@ void kernel_main(void)
         vga[i] = (0x0F << 8) | msg[i];
 
     gdt_install();
+    tss_init(); 
     paging_init();
+    page_map_user(0x200000, 0x200000); // Map 2-3MB for user space
     idt_install();
     keyboard_init();
     tfs_init();

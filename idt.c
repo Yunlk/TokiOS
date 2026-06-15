@@ -1,5 +1,6 @@
 #include "idt.h"
 #include "isr.h"
+
 #define IDT_ENTRIES 256
 
 struct idt_entry idt[IDT_ENTRIES];
@@ -72,6 +73,9 @@ void idt_install()
     idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
     idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
 
+    idt_set_gate(0x80, (uint32_t)isr128, 0x08, 0xEE); // Ring3 accessible(DPL = 3)
+
     idt_flush((uint32_t)&idtp);
+    
     __asm__ volatile("sti");
 }

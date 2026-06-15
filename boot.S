@@ -125,3 +125,36 @@ irq_common_stub:
 
     addl $8, %esp     
     iret
+    
+#=====SYSCALL GATE=====
+
+.global isr128
+isr128:
+    cli
+    pushl $0
+    pushl $0x80
+    pusha
+    pushl %ds
+    pushl %es
+    pushl %fs
+    pushl %gs
+
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+
+    movl %esp, %eax
+    pushl %eax
+    call syscall_handler
+    popl %eax
+
+    popl %gs
+    popl %fs
+    popl %es
+    popl %ds
+    popa
+
+    addl $8, %esp
+    iret
