@@ -39,6 +39,18 @@ static void write_int(int n)
     cursor_write(buf);
 }
 
+static void write_hex(uint32_t n)
+{
+    cursor_write("0x");
+    char buf[9];
+    for (int i = 7; i >= 0; i--) {
+        uint8_t nib = (n >> (i * 4)) & 0xF;
+        buf[7-i] = "0123456789ABCDEF"[nib];
+    }
+    buf[8] = 0;
+    cursor_write(buf);
+}
+
 /* ---- dispatch ---- */
 
 void shell_run(const char *cmd)
@@ -112,6 +124,18 @@ void shell_run(const char *cmd)
     // ────────── home ──────────
     if (name_len == 4 && strncmp(name, "home", 4) == 0) {
         cursor_set(0);
+        return;
+    }
+
+    // ────────── info ──────────
+    if (name_len == 4 && strncmp(name, "info", 4) == 0) {
+        uint32_t cr0, cr2, cr3;
+        __asm__ volatile ("mov %%cr0, %0" : "=r"(cr0));
+        __asm__ volatile ("mov %%cr2, %0" : "=r"(cr2));
+        __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
+        cursor_write("CR0="); write_hex(cr0);
+        cursor_write("  CR2="); write_hex(cr2);
+        cursor_write("  CR3="); write_hex(cr3);
         return;
     }
 
