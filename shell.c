@@ -204,13 +204,12 @@ void shell_run(const char *cmd)
         return;
     }
 
-    // ────────── ring3 ──────────
-    if (name_len == 5 && strncmp(name, "ring3", 5) == 0) {
-        cursor_write("jumping to ring3...");
+    // ────────── run ──────────
+    if (name_len == 3 && strncmp(name, "run", 3) == 0) {
+        if (!*args) { cursor_write("run <file>"); return; }
+        int r = proc_load(args);
+        if (r < 0) { cursor_write("no such file"); return; }
         proc_start((void*)0x200000, (void*)0x2FFFFC);
         return;
     }
-
-
-    
 }
