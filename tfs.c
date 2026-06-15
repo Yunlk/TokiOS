@@ -4,6 +4,8 @@
 static file_t files[MAX_FILES];
 static uint32_t next_free;
 
+extern void write_int(int n);
+
 void tfs_init()
 {
     for (int i = 0; i < MAX_FILES; i++)
@@ -55,8 +57,10 @@ int tfs_read(const char *name, char *buf, uint32_t bufsize)
                 match = 0;
                 break;
             }
-            if(!name[j]) 
-                break;
+            if(!name[j]) {
+            if (files[i].name[j] != 0) match = 0;
+            break;
+        }
         }
         if(!match)
             continue;
@@ -75,15 +79,16 @@ int tfs_read(const char *name, char *buf, uint32_t bufsize)
 }
 void tfs_list(void)
 {
-    cursor_write("name                 size\n");    
     for(int i = 0;i < MAX_FILES;i++)
     {
         if(!files[i].used)
             continue;
+        cursor_write("  ");
         cursor_write(files[i].name);
-        cursor_write("                 ");
+        cursor_write("  ");
+        write_int(files[i].size);
+        cursor_write("\n");
     }
-    
 }
 
 int tfs_delete(const char *name)
@@ -100,8 +105,10 @@ int tfs_delete(const char *name)
                 match = 0;
                 break;
             }
-            if(!name[j]) 
-                break;
+            if(!name[j]) {
+            if (files[i].name[j] != 0) match = 0;
+            break;
+        }
         }
         if(match)
         {

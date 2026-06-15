@@ -1,5 +1,6 @@
 #include "isr.h"
 #include "shell.h"
+#include "proc.h"
 #include <stdint.h>
 
 #define VIDEO ((uint8_t*)0xb8000)
@@ -7,6 +8,27 @@
 static int cursor = 0;
 static char input[256];
 static int  input_len = 0;
+
+/* ---- ring buffer for ring3 getch() ---- */
+#define KEYBUF_SIZE 32
+static volatile char keybuf[KEYBUF_SIZE];
+static volatile int  keybuf_read  = 0;
+static volatile int  keybuf_write = 0;
+
+void keybuf_clear(void)
+{
+    keybuf_read  = 0;
+    keybuf_write = 0;
+}
+
+char getch(void)
+{
+    while (keybuf_read == keybuf_write)
+        __asm__ volatile("sti; hlt; cli");
+    char c = keybuf[keybuf_read];
+    keybuf_read = (keybuf_read + 1) % KEYBUF_SIZE;
+    return c;
+}
 
 static const uint8_t scan_ascii[128] =
 {
@@ -72,26 +94,36 @@ void keyboard_handler()
         uint8_t c = scan_ascii[sc];
         if (!c) return;
 
-        if (c == '\b') {
-            if (input_len > 0) {
-                cursor--;
-                VIDEO[cursor * 2]     = ' ';
-                VIDEO[cursor * 2 + 1] = 0x0F;
-                input_len--;
-            }
-        } else if (c == '\n') {
-            input[input_len] = '\0';
-            cursor_write("\n");
-            shell_run(input);
-            input_len = 0;
-            if (cursor_get() % 80 != 0)
+        /* push to ring buffer for ring3 getch() */
+        int next = (keybuf_write + 1) % KEYBUF_SIZE;
+        if (next != keybuf_read) {
+            keybuf[keybuf_write] = c;
+            keybuf_write = next;
+        }
+
+        /* ring3: skip shell input handling */
+        if (!in_ring3) {
+            if (c == '\b') {
+                if (input_len > 0) {
+                    cursor--;
+                    VIDEO[cursor * 2]     = ' ';
+                    VIDEO[cursor * 2 + 1] = 0x0F;
+                    input_len--;
+                }
+            } else if (c == '\n') {
+                input[input_len] = '\0';
                 cursor_write("\n");
-            cursor_write("TokiOS> ");
-        } else if (input_len < 255) {
-            input[input_len++] = (char)c;
-            VIDEO[cursor * 2]     = c;
-            VIDEO[cursor * 2 + 1] = 0x0F;
-            cursor++;
+                shell_run(input);
+                input_len = 0;
+                if (cursor_get() % 80 != 0)
+                    cursor_write("\n");
+                cursor_write("TokiOS> ");
+            } else if (input_len < 255) {
+                input[input_len++] = (char)c;
+                VIDEO[cursor * 2]     = c;
+                VIDEO[cursor * 2 + 1] = 0x0F;
+                cursor++;
+            }
         }
     }
 }

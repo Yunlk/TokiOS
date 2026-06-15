@@ -1,5 +1,5 @@
-#ifndef GDH_H
-#define GDH_H
+#ifndef GDT_H
+#define GDT_H
 
 #include <stdint.h>
 struct gdt_entry 
@@ -44,4 +44,4 @@ typedef struct
 }__attribute__((packed)) tss_t;
 void tss_init(void);
 void gdt_install();
-#endif // GDH_H
+#endif // GDT_H

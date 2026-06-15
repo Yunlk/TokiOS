@@ -21,7 +21,7 @@ SECTIONS {
         *(.data)
     }
 
-    .bss : {
+    .bss ALIGN(4096) : {
         *(.bss)
         *(COMMON)
     }

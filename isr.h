@@ -22,6 +22,8 @@ void cursor_set(int pos);
 int  cursor_get(void);
 void cursor_write(const char *s);
 void cursor_clear(void);
+char getch(void);
+void keybuf_clear(void);
 
 extern void irq0(), irq1(), irq2(), irq3(), irq4(), irq5(), irq6(), irq7(),
             irq8(), irq9(), irq10(), irq11(), irq12(), irq13(), irq14(), irq15();

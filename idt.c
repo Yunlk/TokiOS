@@ -7,6 +7,8 @@ struct idt_entry idt[IDT_ENTRIES];
 struct idt_ptr idtp;
 
 extern void idt_flush(uint32_t);
+extern void isr128(void);
+
 
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
 {
@@ -73,7 +75,7 @@ void idt_install()
     idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
     idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
 
-    idt_set_gate(0x80, (uint32_t)isr128, 0x08, 0xEE); // Ring3 accessible(DPL = 3)
+    idt_set_gate(0x80, (uint32_t)isr128, 0x08, 0xEF); //trap gate
 
     idt_flush((uint32_t)&idtp);
     

@@ -1,36 +1,48 @@
 #include "proc.h"
 #include "tfs.h"
-#include "paging.h"
+#include "paging.h"     // page_map_user 
 #include "isr.h"
 #include <stdint.h>
 
-#define USER_CODE_BASE 0x200000
-#define USER_STACK_TOP 0x2FFFFC
+uint32_t kern_restore_esp;
+volatile int in_ring3 = 0;
 
 int proc_load(const char *name)
 {
-    char *buf = (char*)USER_CODE_BASE;
-    int   len = tfs_read(name, buf, 0x100000 - USER_CODE_BASE);
+    char *buf = (char*)0x200000;
+    int len = tfs_read(name, buf, 0x100000);  // 1MB 
     if (len < 0)
         return -1;
 
-    page_map_user(USER_CODE_BASE, USER_CODE_BASE);
-    return 0;
+    keybuf_clear();
+    page_map_user(0x200000, 0x200000);
+    page_map_user(0x2FF000, 0x2FF000);
+
+    __asm__ volatile("movl %%ebp, %0" : "=m"(kern_restore_esp));
+    in_ring3 = 1;
+    proc_start(0x200000, 0x2FFFFC);
+
+    return 0; 
 }
 
-void proc_start(void *entry, void *stack_top)
+void proc_start(uint32_t entry, uint32_t stack_top)
 {
-    uint32_t e = (uint32_t)entry;
-    uint32_t s = (uint32_t)stack_top;
-
-    asm volatile(
-        "push $0x23\n"
-        "push %1\n"
-        "pushf\n"
-        "push $0x1B\n"
-        "push %0\n"
-        "iret\n"
+    __asm__ volatile(
+        "movw $0x23, %%ax      \n"   
+        "movw %%ax, %%ds       \n"
+        "movw %%ax, %%es       \n"
+        "movw %%ax, %%fs       \n"
+        "movw %%ax, %%gs       \n"
+        "pushl $0x23           \n"   
+        "pushl %[esp]          \n"
+        "pushfl                \n"
+        "pushl $0x1B           \n"   
+        "pushl %[eip]          \n"
+        "iret                  \n"
         :
-        : "r"(e), "r"(s)
+        : [esp] "r"(stack_top), [eip] "r"(entry)
+        : "ax"
     );
 }
+
+
