@@ -186,7 +186,7 @@ void shell_run(const char *cmd)
         int dlen = 0;
         while (data[dlen]) dlen++;
         if (fnlen >= MAX_FNAME) { cursor_write("name too long"); return; }
-            
+
         char fn[MAX_FNAME];
         for (int i = 0; i < fnlen && i < MAX_FNAME-1; i++)
             fn[i] = fname[i];
@@ -200,6 +200,14 @@ void shell_run(const char *cmd)
     if (name_len == 3 && strncmp(name, "del", 3) == 0) {
         int r = tfs_delete(args);
         if (r < 0) cursor_write("no such file");
+        return;
+    }
+
+    // ────────── ring3 ──────────
+    if (name_len == 5 && strncmp(name, "ring3", 5) == 0) {
+        cursor_write("jumping to ring3...");
+        extern void proc_start(uint32_t entry);
+        proc_start(0x200000);
         return;
     }
 
