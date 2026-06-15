@@ -2,9 +2,6 @@
 #define ISR_H
 #include <stdint.h>
 
-extern void isr128(void);
-void syscall_handler(struct regs *r);
-
 struct regs
 {
     uint32_t ds, es, fs, gs;
@@ -12,6 +9,9 @@ struct regs
     uint32_t int_no, err_code;
     uint32_t eip, cs, eflags, useresp, ss;
 }__attribute__((packed));
+
+extern void isr128(void);
+void syscall_handler(struct regs *r);
 
 void isrs_install();
 void irq_install();
@@ -25,7 +25,5 @@ void cursor_clear(void);
 
 extern void irq0(), irq1(), irq2(), irq3(), irq4(), irq5(), irq6(), irq7(),
             irq8(), irq9(), irq10(), irq11(), irq12(), irq13(), irq14(), irq15();
-
-void syscall_handler(struct regs *r);
 
 #endif // ISR_H
