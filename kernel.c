@@ -5,7 +5,6 @@
 #include "tfs.h"
 
 void keyboard_init();
-tfs_init();
 void kernel_main(void)
 {
     // Clear screen
@@ -22,6 +21,7 @@ void kernel_main(void)
     paging_init();
     idt_install();
     keyboard_init();
+    tfs_init();
     cursor_write("\nTokiOS> ");
 
     for(;;) __asm__ volatile("hlt");

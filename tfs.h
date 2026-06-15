@@ -16,8 +16,8 @@ typedef struct
 } file_t;
 
 void tfs_init(void);
-int tfs_create(const char *name, const uint8_t *data, uint32_t len);
-int tfs_read(const char *name, uint8_t *buf, uint32_t bufsize);
+int tfs_create(const char *name, const char *data, uint32_t len);
+int tfs_read(const char *name, char *buf, uint32_t bufsize);
 int tfs_delete(const char *name);
 void tfs_list(void);
 
