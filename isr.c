@@ -12,6 +12,6 @@ void irq_handler(struct regs *r)
     outb(0x20, 0x20); // Send EOI to master PIC
 
     extern void keyboard_handler();
-    if(r->int_no == 1) // Keyboard IRQ
+    if(r->int_no == 33) // Keyboard IRQ
         keyboard_handler();
 }
