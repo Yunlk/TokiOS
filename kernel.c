@@ -1,4 +1,5 @@
 #include "gdt.h"
+#include "paging.h"
 #include "idt.h"
 #include "isr.h"
 
@@ -17,6 +18,7 @@ void kernel_main(void)
         vga[i] = (0x0F << 8) | msg[i];
 
     gdt_install();
+    paging_init();
     idt_install();
     keyboard_init();
     cursor_write("\nTokiOS> ");
