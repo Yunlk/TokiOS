@@ -3,7 +3,6 @@
 #include "tfs.h"
 #include "proc.h"
 #include <stddef.h>
-#include <stdint.h>
 /* --------------- write ---------------- */
 void write_int(uint32_t n)
 {
@@ -41,7 +40,6 @@ static int parse_args(const char *input, const char *argv[], int max)
         if (argc >= max) break;
         argv[argc++] = input;
         while (*input && *input != ' ') input++;
-        if (*input) *(char *)input++ = '\0';
     }
     return argc;
 }
@@ -49,9 +47,9 @@ static int parse_args(const char *input, const char *argv[], int max)
 /* ---------- command declarations ---------- */
 static void cmd_ls  (int argc, const char *argv[]);
 static void cmd_run (int argc, const char *argv[]);
-static void cmd_show(int argc, const char *argv[]);
-static void cmd_new (int argc, const char *argv[]);
-static void cmd_del (int argc, const char *argv[]);
+static void cmd_cat(int argc, const char *argv[]);
+static void cmd_touch (int argc, const char *argv[]);
+static void cmd_rm (int argc, const char *argv[]);
 static void cmd_clear(int argc, const char *argv[]);
 static void cmd_info(int argc, const char *argv[]);
 static void cmd_help(int argc, const char *argv[]);
@@ -66,9 +64,9 @@ typedef struct {
 static const cmd_t cmd_table[] = {
     {"ls",    cmd_ls,    "list files"},
     {"run",   cmd_run,   "run <file>"},
-    {"show",  cmd_show,  "show <file>"},
-    {"new",   cmd_new,   "new <file> <data>"},
-    {"del",   cmd_del,   "del <file>"},
+    {"cat",  cmd_cat,  "cat <file>"},
+    {"touch",   cmd_touch,   "touch <file> <data>"},
+    {"rm",   cmd_rm,   "rm <file>"},
     {"clear", cmd_clear, "clear screen"},
     {"info",  cmd_info,  "show cpu regs"},
     {"help",  cmd_help,  "show this"},
@@ -117,10 +115,10 @@ static void cmd_run(int argc, const char *argv[])
     }
 }
 
-static void cmd_show(int argc, const char *argv[])
+static void cmd_cat(int argc, const char *argv[])
 {
     if (argc < 2) {
-        cursor_write("show <file>\n");
+        cursor_write("cat <file>\n");
         return;
     }
     char buf[256];
@@ -136,10 +134,10 @@ static void cmd_show(int argc, const char *argv[])
     cursor_write("\n");
 }
 
-static void cmd_new(int argc, const char *argv[])
+static void cmd_touch(int argc, const char *argv[])
 {
     if (argc < 3) {
-        cursor_write("new <file> <data>\n");
+        cursor_write("touch <file> <data>\n");
         return;
     }
     int ret = tfs_create(argv[1], argv[2], strlen(argv[2]));
@@ -149,10 +147,10 @@ static void cmd_new(int argc, const char *argv[])
         cursor_write("ok\n");
 }
 
-static void cmd_del(int argc, const char *argv[])
+static void cmd_rm(int argc, const char *argv[])
 {
     if (argc < 2) {
-        cursor_write("del <file>\n");
+        cursor_write("rm <file>\n");
         return;
     }
     int ret = tfs_delete(argv[1]);

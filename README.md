@@ -40,9 +40,9 @@ TokiOS>
 |------|------|
 | `ls` | 列出 TFS 文件 |
 | `run <file>` | 加载并运行 `.tk`（ring 3） |
-| `show <file>` | 打印文件内容 |
-| `new <file>` | 新建空文件 |
-| `del <file>` | 删除文件 |
+| `cat <file>` | 打印文件内容 |
+| `touch <file>` | 新建空文件 |
+| `rm <file>` | 删除文件 |
 | `clear` | 清屏 |
 | `info` | CR0 / CR2 / CR3 |
 | `help` | 列出命令 |
@@ -88,7 +88,7 @@ TokiOS>
 tok\0(4B) | 入口地址(4B) | 代码大小(4B) | 权限(1B) | 保留(3B) | [钩子名表] | 机器码
 ```
 
-权限：`0`=ring3, `1`=ring1, `2`=kami。
+权限：`0`=ring3, `1`=ring1, `2`=tokisora。
 
 ### 系统调用：函数钩子（已规划，当前临时用 int 0x80）
 
