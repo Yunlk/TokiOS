@@ -22,6 +22,8 @@ void cursor_set(int pos);
 int  cursor_get(void);
 void cursor_write(const char *s);
 void cursor_clear(void);
+void cursor_backspace(void);
+void exception_handler(struct regs *r);
 char getch(void);
 void keybuf_clear(void);
 

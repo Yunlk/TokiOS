@@ -7,6 +7,7 @@
 #define FS_BASE 0x300000
 #define FS_SIZE 0x100000 //1MB  
 
+int tfs_get_size(const char *name);
 typedef struct 
 {
     char name[MAX_FNAME];

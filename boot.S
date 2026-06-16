@@ -125,7 +125,80 @@ irq_common_stub:
 
     addl $8, %esp     
     iret
-    
+
+#=====EXCEPTION STUBS=====
+
+.macro EXC num, has_err
+.global exc\num
+exc\num:
+    cli
+    .if !\has_err
+    pushl $0           # 无错误码的异常推 dummy
+    .endif
+    pushl $\num        # 异常号
+    jmp exc_common_stub
+.endm
+
+EXC 0,  0
+EXC 1,  0
+EXC 2,  0
+EXC 3,  0
+EXC 4,  0
+EXC 5,  0
+EXC 6,  0
+EXC 7,  0
+EXC 8,  1
+EXC 9,  0
+EXC 10, 1
+EXC 11, 1
+EXC 12, 1
+EXC 13, 1
+EXC 14, 1
+EXC 15, 0
+EXC 16, 0
+EXC 17, 1
+EXC 18, 0
+EXC 19, 0
+EXC 20, 0
+EXC 21, 1
+EXC 22, 0
+EXC 23, 0
+EXC 24, 0
+EXC 25, 0
+EXC 26, 0
+EXC 27, 0
+EXC 28, 0
+EXC 29, 1
+EXC 30, 1
+EXC 31, 0
+
+exc_common_stub:
+    pusha
+    pushl %ds
+    pushl %es
+    pushl %fs
+    pushl %gs
+
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+
+    movl %esp, %eax
+    pushl %eax
+    call exception_handler
+    popl %eax
+
+    popl %gs
+    popl %fs
+    popl %es
+    popl %ds
+    popa
+
+    addl $8, %esp
+    iret
+
 #=====SYSCALL GATE=====
 
 .global isr128
@@ -158,3 +231,22 @@ isr128:
 
     addl $8, %esp
     iret
+
+#===== proc_start: pure asm ring0→ring3 =====
+# void proc_start(uint32_t entry, uint32_t stack_top)
+# C调用: proc_start(entry, stack_top)
+# 参数: [ebp+8]=entry, [ebp+12]=stack_top
+# 无返回——iret 跳 ring3
+.global proc_start
+proc_start:
+    pushl %ebp
+    movl %esp, %ebp
+    movl 0x8(%ebp), %eax
+    movl 0xc(%ebp), %ebx
+    pushl $0x23            # SS
+    pushl %ebx             # ESP
+    pushfl                 # EFLAGS
+    pushl $0x1B            # CS
+    pushl %eax             # EIP
+    iret
+    # never returns

@@ -38,7 +38,7 @@ static const uint8_t scan_ascii[128] =
     0,  '\\','z','x','c','v','b','n','m',',','.','/',0,
     '*',0,  ' ', 0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,'\b',0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
@@ -64,6 +64,8 @@ void cursor_write(const char *s)
     for (; *s; s++) {
         if (*s == '\n') {
             cursor = (cursor / 80 + 1) * 80;
+        } else if (*s == '\b') {
+            if (cursor > 0) cursor--;
         } else {
             VIDEO[cursor * 2]     = *s;
             VIDEO[cursor * 2 + 1] = 0x0F;
@@ -79,6 +81,15 @@ void cursor_clear(void)
         VIDEO[i * 2 + 1] = 0x0F;
     }
     cursor = 0;
+}
+
+void cursor_backspace(void)
+{
+    if (cursor > 0) {
+        cursor--;
+        VIDEO[cursor * 2]     = ' ';
+        VIDEO[cursor * 2 + 1] = 0x0F;
+    }
 }
 
 /* ---- keyboard ---- */

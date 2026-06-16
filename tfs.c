@@ -118,3 +118,32 @@ int tfs_delete(const char *name)
     }
     return -1; // Not found
 }
+
+int tfs_get_size(const char *name)
+{
+    for(int i = 0;i < MAX_FILES;i++)
+    {
+        if(!files[i].used)
+            continue;
+        int match = 1;
+        for(int j = 0;j < MAX_FNAME;j++)
+        {
+            if(files[i].name[j] != name[j])
+            {
+                 match = 0;
+                 break;
+            }
+            if(!name[j])
+            {
+                if(files[i].name[j] != 0)
+                {
+                    match = 0;
+                    break;
+                }
+            }
+        }
+        if(match)
+            return files[i].size;
+    }
+    return -1;
+}

@@ -41,6 +41,26 @@ void idt_install()
     for(int i = 0;i < IDT_ENTRIES; i++)
         idt[i] = (struct idt_entry){0};
 
+    // Register excetion handlers (0-31)
+    extern void exc0(), exc1(), exc2(),	exc3(),	exc4(),	exc5(),	exc6(),	exc7();
+    extern void exc8(), exc9(),	exc10(),exc11(),exc12(),exc13(),exc14(),exc15();
+    extern void exc16(),exc17(),exc18(),exc19(),exc20(),exc21(),exc22(),exc23();
+    extern void exc24(),exc25(),exc26(),exc27(),exc28(),exc29(),exc30(),exc31();
+
+    uint32_t exc_addrs[] = {
+    (uint32_t)exc0,  (uint32_t)exc1,  (uint32_t)exc2,  (uint32_t)exc3,
+    (uint32_t)exc4,  (uint32_t)exc5,  (uint32_t)exc6,  (uint32_t)exc7,
+    (uint32_t)exc8,  (uint32_t)exc9,  (uint32_t)exc10, (uint32_t)exc11,
+    (uint32_t)exc12, (uint32_t)exc13, (uint32_t)exc14, (uint32_t)exc15,
+    (uint32_t)exc16, (uint32_t)exc17, (uint32_t)exc18, (uint32_t)exc19,
+    (uint32_t)exc20, (uint32_t)exc21, (uint32_t)exc22, (uint32_t)exc23,
+    (uint32_t)exc24, (uint32_t)exc25, (uint32_t)exc26, (uint32_t)exc27,
+    (uint32_t)exc28, (uint32_t)exc29, (uint32_t)exc30, (uint32_t)exc31,
+    };
+
+    for(int i = 0;i < 32;i++)
+    idt_set_gate(i,exc_addrs[i],0x08,0x8E);
+    
     // Remap PIC
     outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);

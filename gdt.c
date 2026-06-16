@@ -38,5 +38,6 @@ void tss_init()
         ((uint8_t*)&tss)[i] = 0;
     tss.ss0 = 0x10; // Kernel data segment
     tss.esp0 = 0x9FC00; // Stack top (just below 1MB)
+    tss.iopb = sizeof(tss_t);
     asm volatile("mov $0x28, %%ax\n""ltr %%ax" ::: "ax"); // Load TSS
 }

@@ -40,7 +40,7 @@ typedef struct
     uint16_t fs, _res8;
     uint16_t gs, _res9;
     uint16_t ldtr, _res10;
-    uint16_t _res11, iopb;
+    uint16_t iopb, _res11;
 }__attribute__((packed)) tss_t;
 void tss_init(void);
 void gdt_install();

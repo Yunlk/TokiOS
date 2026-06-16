@@ -31,7 +31,7 @@ static int strlen(const char *s)
 }
 
 /* ---------- argument parser ---------- */
-static int parse_args(const char *input, const char *argv[], int max)
+static int parse_args(char *input, const char *argv[], int max)
 {
     int argc = 0;
     while (*input) {
@@ -40,6 +40,8 @@ static int parse_args(const char *input, const char *argv[], int max)
         if (argc >= max) break;
         argv[argc++] = input;
         while (*input && *input != ' ') input++;
+        if(*input)
+            *input++ = '\0';
     }
     return argc;
 }
@@ -53,6 +55,7 @@ static void cmd_rm (int argc, const char *argv[]);
 static void cmd_clear(int argc, const char *argv[]);
 static void cmd_info(int argc, const char *argv[]);
 static void cmd_help(int argc, const char *argv[]);
+static void cmd_crash(int argc, const char *argv[]);
 
 /* ---------- command table ---------- */
 typedef struct {
@@ -70,11 +73,12 @@ static const cmd_t cmd_table[] = {
     {"clear", cmd_clear, "clear screen"},
     {"info",  cmd_info,  "show cpu regs"},
     {"help",  cmd_help,  "show this"},
+    {"crahs", cmd_crash, "trigger exception 0"},
     {0, 0, 0}
 };
 
 /* ---------- shell entry ---------- */
-void shell_run(const char *input)
+void shell_run(char *input)
 {
     if (!input || !*input) return;
 
@@ -190,4 +194,11 @@ static void cmd_help(int argc, const char *argv[])
         cursor_write(cmd_table[i].help);
         cursor_write("\n");
     }
+}
+
+static void cmd_crash(int argc, const char *argv[])
+{
+    (void)argc;(void)argv;
+    cursor_write("triggering #DE...\n");
+    __asm__ volatile("int $0");
 }
