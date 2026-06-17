@@ -15,12 +15,9 @@ int proc_load(const char *name)
     if (size < (int)sizeof(tk_header_t)) return -1;
 
     char *hdr_buf = (char*)USER_CODE_BASE;
-    // tfs_read 内部有 n > bufsize-1 的截断
-    // 传 size+1 补偿，确保 16 字节头部完整读取
     int n = tfs_read(name, hdr_buf, size + 1);
     if (n < 0) return -1;
 
-    // 直接 reinterpret 头部，不拷贝（避免 SSE movdqu #UD）
     tk_header_t *hdr = (tk_header_t *)hdr_buf;
     if (tk_validate(hdr) != 0) return -1;
     if (sizeof(tk_header_t) + hdr->code_size != (uint32_t)size) return -1;

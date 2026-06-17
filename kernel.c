@@ -3,6 +3,7 @@
 #include "idt.h"
 #include "isr.h"
 #include "tfs.h"
+#include "auth.h"
 
 void keyboard_init();
 
@@ -56,6 +57,7 @@ void kernel_main(void)
     idt_install();
     keyboard_init();
     tfs_init();
+    auth_init();
 
     static char shell_tk[16 + sizeof(shell_code)];
     shell_tk[ 0] = 't'; shell_tk[ 1] = 'o';

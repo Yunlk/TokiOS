@@ -59,11 +59,29 @@ static inline void outb(uint16_t port, uint8_t val)
 void cursor_set(int pos)  { cursor = pos; }
 int  cursor_get(void)     { return cursor; }
 
+static void scroll_up(void) {
+    /* 第 1~24 行上移一行, 清空第 25 行 */
+    for (int i = 0; i < 80 * 24; i++) {
+        VIDEO[i * 2]     = VIDEO[(i + 80) * 2];
+        VIDEO[i * 2 + 1] = VIDEO[(i + 80) * 2 + 1];
+    }
+    /* 清最后一行 */
+    for (int i = 80 * 24; i < 80 * 25; i++) {
+        VIDEO[i * 2]     = ' ';
+        VIDEO[i * 2 + 1] = 0x0F;
+    }
+}
+
 void cursor_write(const char *s)
 {
     for (; *s; s++) {
         if (*s == '\n') {
             cursor = (cursor / 80 + 1) * 80;
+            /* 超 25 行则滚屏 */
+            if (cursor >= 80 * 25) {
+                scroll_up();
+                cursor = 80 * 24;
+            }
         } else if (*s == '\b') {
             if (cursor > 0) cursor--;
         } else {

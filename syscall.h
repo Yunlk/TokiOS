@@ -14,6 +14,9 @@
 #define SYS_EXIT     9
 #define SYS_HEX      10
 #define SYS_BACKSPACE 11
+#define SYS_LOGIN 12  /* ebx=user, ecx=pass */
+#define SYS_EXEC  13  /* ebx=filename → 替换当前进程 */
+#define SYS_MAX   13
 
 void syscall_handler(struct regs *r);
 

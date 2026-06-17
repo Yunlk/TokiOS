@@ -2,6 +2,7 @@
 #include "isr.h"
 #include "tfs.h"
 #include "proc.h"
+#include "auth.h"
 #include <stddef.h>
 /* --------------- write ---------------- */
 void write_int(uint32_t n)
@@ -55,6 +56,11 @@ static void cmd_rm (int argc, const char *argv[]);
 static void cmd_clear(int argc, const char *argv[]);
 static void cmd_info(int argc, const char *argv[]);
 static void cmd_help(int argc, const char *argv[]);
+static void cmd_login(int argc, const char *argv[]);
+static void cmd_logout(int argc, const char *argv[]);
+static void cmd_whoami(int argc, const char *argv[]);
+static void cmd_passwd(int argc, const char *argv[]);
+static void cmd_useradd(int argc, const char *argv[]);
 static void cmd_crash(int argc, const char *argv[]);
 
 /* ---------- command table ---------- */
@@ -73,7 +79,12 @@ static const cmd_t cmd_table[] = {
     {"clear", cmd_clear, "clear screen"},
     {"info",  cmd_info,  "show cpu regs"},
     {"help",  cmd_help,  "show this"},
-    {"crahs", cmd_crash, "trigger exception 0"},
+    {"login",  cmd_login,  "login <user> <pass>"},
+    {"logout", cmd_logout, "logout"},
+    {"whoami", cmd_whoami, "whoami"},
+    {"passwd", cmd_passwd, "change my password"},
+    {"useradd",cmd_useradd,"useradd <user> <pass>"},
+    {"crash",  cmd_crash,  "trigger exception 0"},
     {0, 0, 0}
 };
 
@@ -196,6 +207,37 @@ static void cmd_help(int argc, const char *argv[])
     }
 }
 
+static void cmd_login(int argc, const char *argv[]) {
+    if (argc < 3) { cursor_write("login <user> <pass>\n"); return; }
+    if (auth_login(argv[1], argv[2])) {
+        cursor_write("login ok ("); cursor_write(argv[1]); cursor_write(")\n");
+    }
+}
+
+static void cmd_logout(int argc, const char *argv[]) {
+    (void)argc; (void)argv;
+    auth_logout();
+    cursor_write("logged out\n");
+}
+
+static void cmd_whoami(int argc, const char *argv[]) {
+    (void)argc; (void)argv;
+    const char *u = auth_whoami();
+    cursor_write(u[0] ? u : "(nobody)");
+    cursor_write("\n");
+}
+
+static void cmd_passwd(int argc, const char *argv[]) {
+    if (argc < 2) { cursor_write("passwd <new_password>\n"); return; }
+    if (auth_passwd(argv[1]) < 0) return;  /* error already printed */
+    cursor_write("password changed\n");
+}
+
+static void cmd_useradd(int argc, const char *argv[]) {
+    if (argc < 3) { cursor_write("useradd <user> <pass>\n"); return; }
+    if (auth_adduser(argv[1], argv[2]) < 0) return;
+    cursor_write("user "); cursor_write(argv[1]); cursor_write(" added\n");
+}
 static void cmd_crash(int argc, const char *argv[])
 {
     (void)argc;(void)argv;

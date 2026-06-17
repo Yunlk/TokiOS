@@ -2,11 +2,14 @@
 #include "isr.h"
 #include "tfs.h"
 #include "proc.h"
+#include "auth.h"
 
 extern uint32_t kern_restore_esp;  
 
 void syscall_handler(struct regs *r)
 {
+    if(r->eax < 1 || r->eax > SYS_MAX)
+        return;
     switch (r->eax) {
 
     case SYS_COUT:
@@ -75,5 +78,18 @@ void syscall_handler(struct regs *r)
     case SYS_BACKSPACE:
         cursor_backspace();
         break;
+    
+    case SYS_LOGIN:
+        r->eax = auth_login((const char*)r->ebx, (const char*)r->ecx);
+        break;
+
+    case SYS_EXEC:
+        r->eax = proc_load((const char*)r->ebx);
+        /* 成功则 proc_start → iret, 不返回; 失败返回 -1 */
+        break;
     }
+
+   
+    
+    
 }
