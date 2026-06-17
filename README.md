@@ -16,6 +16,8 @@
 
 MVP 目标：最小内核（~10k 行 C）+ 丰富的中文 Shell。
 
+> 📐 架构详解见 **[ARCHITECTURE.md](ARCHITECTURE.md)** — 文件职责、调用链、数据流、常见坑。
+
 ## 当前状态
 
 分页开着。Ring 3 用户态能跑 `.tk` 程序。`int 0x80` 系统调用框架搭好了，13 个调用号。TokiFS v0.2 — 16 槽位，1MB RAM 盘，删除真正回收空间（数据前移紧凑）。Shell 有 15 个命令。多用户认证（SHA-256 密码哈希，存 `/etc/passwd`）。TSS IOPB 已设（ring3 IO 全禁）。
