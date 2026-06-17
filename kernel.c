@@ -49,6 +49,7 @@ void kernel_main(void)
     const char *msg = "TokiOS booted.";
     for (int i = 0; msg[i]; i++)
         vga[i] = (0x0F << 8) | msg[i];
+    cursor_set(14);  // 同步光标, 否则 auth_init 的 cursor_write 会从 0 写覆盖 boot 信息
 
     gdt_install();
     tss_init();
