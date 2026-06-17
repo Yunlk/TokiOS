@@ -608,7 +608,7 @@ typedef struct {
 // .tk 文件 = [16 字节头] + [code_size 字节机器码]
 ```
 
-`tk_validate` 检查：magic 是否为 `toki`、code_size 是否在 1..1MB 内、flags 是否为零。
+`tk_validate` 检查：magic 是否为 `toki`、code_size 是否在 1 字节到 1MB 之间、flags 是否为零。
 
 ---
 
