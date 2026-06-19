@@ -62,11 +62,13 @@ int tfs_create(const char *name, const char *data, uint32_t len)
 int tfs_read(const char *name, char *buf, uint32_t bufsize)
 {
     int slot = tfs_find(name);
-    if (slot < 0) return -1;
+    if (slot < 0 || slot >= MAX_FILES) return -1;
 
     uint32_t n = files[slot].size;
     if (n > bufsize - 1)
         n = bufsize - 1;
+    if (files[slot].offset + n > FS_SIZE)
+        n = FS_SIZE - files[slot].offset;  // 防止越界读
 
     char *src = (char*)(FS_BASE + files[slot].offset);
     for (uint32_t j = 0; j < n; j++)
@@ -90,7 +92,7 @@ void tfs_list(void)
 int tfs_delete(const char *name)
 {
     int slot = tfs_find(name);
-    if (slot < 0) return -1;
+    if (slot < 0 || slot >= MAX_FILES) return -1;
 
     uint32_t gap     = files[slot].size;
     uint32_t gap_off = files[slot].offset;

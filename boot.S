@@ -126,6 +126,19 @@ irq_common_stub:
     addl $8, %esp     
     iret
 
+#===== #DF special handler (must not touch stack) =====
+
+.global exc8
+exc8:
+    cli
+    movl $0xB8000, %edi
+    movl $0x0F200F44, (%edi)        # "D "
+    movl $0x0F210F46, 4(%edi)       # "F!"
+    movl $0x0F210F21, 8(%edi)       # "!!"
+    movl $0x0F200F20, 12(%edi)      # "  "
+1:  hlt
+    jmp 1b
+
 #=====EXCEPTION STUBS=====
 
 .macro EXC num, has_err
@@ -147,7 +160,7 @@ EXC 4,  0
 EXC 5,  0
 EXC 6,  0
 EXC 7,  0
-EXC 8,  1
+# exc8 (#DF) has its own handler below — must not touch stack
 EXC 9,  0
 EXC 10, 1
 EXC 11, 1

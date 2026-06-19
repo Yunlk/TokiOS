@@ -27,6 +27,9 @@ int proc_load(const char *name)
     page_map_user(USER_STACK_TOP & 0xFFFFF000,
                   USER_STACK_TOP & 0xFFFFF000);
 
+    // 栈下守护页: 清掉 PTE, ring3 溢出 → #PF, 不踩到页表/代码
+    page_guard_set((USER_STACK_TOP & 0xFFFFF000) - 0x1000);
+
     __asm__ volatile("movl %%ebp, %0" : "=m"(kern_restore_esp));
     in_ring3 = 1;
 

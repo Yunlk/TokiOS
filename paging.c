@@ -25,6 +25,13 @@ void page_map_user(uint32_t vaddr,uint32_t paddr)
     uint32_t pd_index = vaddr >> 22;
     uint32_t pt_index = (vaddr >> 12) & 0x3FF;
 
-    page_directory[pd_index] |= PAGE_PRESENT | PAGE_RW | PAGE_USER;     //FK
+    page_directory[pd_index] |= PAGE_PRESENT | PAGE_RW | PAGE_USER;
     first_page_table[pt_index] = (paddr & 0xFFFFF000) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+}
+
+void page_guard_set(uint32_t vaddr)
+{
+    uint32_t pt_index = (vaddr >> 12) & 0x3FF;
+    first_page_table[pt_index] = 0;
+    __asm__ volatile("invlpg (%0)" : : "r"(vaddr) : "memory");
 }
